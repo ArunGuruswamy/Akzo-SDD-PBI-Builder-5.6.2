@@ -1,0 +1,381 @@
+Akzo SDD PBI Builder 5.1.0
+5.3.0 Chat-first follow-up
+The installed agent and user documentation now make Copilot Chat the normal
+intake, question, review and approval interface; HTML remains optional. The
+PowerShell generation action requires the configured repository root, explicit
+approver name and current reviewed-content fingerprint. Packaging also excludes
+the historical Akzo-Pbi-Builder_old checkout.
+- node maintainer/test-core.cjs: 59 workflow checks passed.
+- node maintainer/test-ui.cjs: passed the browser UI handler suite.
+- node --test maintainer/test-521.cjs maintainer/test-530.cjs: 24 passed (16 + 8),
+  including the exact generated readiness and ApproveAndGenerate commands.
+- node maintainer/test-ps.cjs: 15 PowerShell installer checks passed under the
+  real Windows PowerShell execution policy.
+- node maintainer/test-e2e.cjs: 13 end-to-end checks passed with real files and
+  the installer, including explicit Chat approval, Markdown/JSON/DOCX generation,
+  refusal of stale review and sensitive working-document content.
+- node maintainer/release.cjs: 67 package entries; Expand-Archive independently
+  extracted the package and verified all 66 file checksums. The release ZIP also
+  verified against its generated SHA-256 sidecar.
+- Root HTML, installer scripts and bundle match their canonical maintainer sources.
+Not verified: live Copilot behavior, agent discovery in Visual Studio/VS Code, or
+the VS Code execute tool in a real host; these are host-level checks.
+
+5.3.0 supplement - 1 November 2026 (Windows 11, Node 26.5.1, Windows PowerShell 5.1,
+CurrentUser execution policy; no Python on this machine, so build.cjs and update-fixture.cjs were used)
+Baseline before editing: build.cjs + test-core (59), test-ui, test-521 (16) were green on the
+uncommitted 5.2.2 tree. The 5.2.2 core is frozen as maintainer/fixtures/baseline-v5.2.2-core.cjs.
+Results of the final run on the released tree:
+- node test-core.cjs: 59 workflow checks passed (new: incremental discovery, file index,
+  entry points, reuse and edit/delete detection).
+- node test-ui.cjs: passed, including the journey bar, collapsed run details, the warnings card
+  beside blockers, the detailed evidence panel and the incremental discovery message.
+- node --test test-521.cjs test-530.cjs: 24 passed (16 + 8): non-blocking gaps reach every format,
+  BLOCKING/unspecified/unknown impact still blocks, ASSUMED/UNAVAILABLE evidence is never proof,
+  agent router and guides, analysis plan (CDMS-only, DAB-only, UI-only, combined, shared-UI identity),
+  evidence dependencies and invalidation, run meter, git identity without credentials.
+- node test-ps.cjs: 15 passed (13 earlier + evidence dependencies PowerShell/JavaScript parity +
+  repository path persistence across install, reinstall, upgrade, repair and restart, with spaces,
+  non-ASCII names, an absolute path, an empty value that keeps, -ClearSource, a role change,
+  invalid characters, a deleted managed file, a missing folder and a .code-workspace file).
+  The readiness shared cases (9 new) pass in JavaScript and are reported identically by PowerShell.
+- node test-e2e.cjs: 11 end-to-end checks passed on real files and the real installer over a
+  configurable four-repository workspace: install, upgrade, repair, restart, discovery, shared-UI
+  plan, evidence reuse and invalidation, grouped decisions (recommendation, custom answer, Decide Later),
+  resume without repeated questions, editing an earlier answer, one final approval, PBI-CDMS/DAB/UI
+  in Markdown, JSON and DOCX with identical rules, criteria, warning and approver, PowerShell/JavaScript
+  readiness parity, and approval staleness when an evidence source changes.
+- node benchmark-530.cjs (docs/PERFORMANCE-5.3.0.md): discovery rerun with nothing changed reads
+  62,743 bytes instead of 677,290 and writes 0 files instead of 2 (150-project synthetic workspace);
+  the first run is unchanged in opens and bytes read; directory listing time is unchanged. Approve &
+  Generate performs the same 94 opens (73 of an already opened file, deliberate integrity re-checks)
+  as 5.2.2. The agent entry file is 4,762 characters LARGER (36,470 -> 41,232); no token saving is claimed.
+Real browser (integrated Chromium, built HTML served from http://127.0.0.1, window.showDirectoryPicker
+replaced by the browser's origin private file system; the native folder dialog was NOT exercised):
+install (19 files, four repository paths persisted), Discover sources twice (second run wrote 0 files),
+a PBI folder with seven evidence records, the decision modal opened as a real <dialog> (matches :modal) with
+the recommended option preselected but not approved; custom answer, Decide Later and the recommended
+option were saved with DEC-2/DEC-3 in DECISION-LOG.md; after a page reload only the deferred question
+was shown ("2 already answered and preserved"); answering it, Review showed eight cards including the
+warning and the collapsed evidence panel, one Approve & Generate produced the nine files and the
+download window, the journey bar completed, PO/BA and technical approvals stayed pending.
+Unexplained during that run: on two occasions the deferred question was found answered about 10-16
+seconds after it was deferred. Instrumenting PBI.recordAnswers over a 25 s window showed the only save
+was the scripted click, while browser-trusted clicks (Cancel, a summary) appeared that the
+script had not issued, so they come from the automation host rather than the page; this was not fully
+root-caused and is listed as an open item.
+Not verified: Visual Studio/VS Code agent discovery and the live Copilot behavior of the router and
+guides (they are instructions, not code), real Azure DevOps, native folder-picker permission, the
+setup window dialogs of PBI-Builder-Setup.ps1 (parsed and ASCII-checked, not clicked), current
+external-repository freshness (the browser cannot read outside the selected folder).
+Incident during this work: running release.cjs by mistake overwrote the untracked 5.2.2 ZIP and the root
+package files with a build of the work in progress. The root files were restored byte-for-byte in size
+and git diff statistics, and releases/Akzo-SDD-PBI-Builder-5.2.2/ was rebuilt from the 5.2.2 sources
+(5.3.0 changes reverted): SHA-256 ea81932f2e68ae1f8311f7eae720867ebc793d07682fbc3cba21870c868be639. The
+original ZIP's hash was not recorded anywhere, so equality with the first 5.2.2 build cannot be proven;
+its HTML (667,731 bytes), bundle, installer and checksum file sizes match the originals exactly.
+
+5.2.2 supplement - 1 November 2026
+- Node build.cjs builds the same standalone embedding contract without Python.
+- test-core.cjs: 59 workflow checks passed.
+- test-ui.cjs: grouped radios, recommendation preselection without approval,
+  custom answers, draft/defer persistence, cancel, material evidence invalidation,
+  state/source save races and existing workflows passed.
+- node --test test-521.cjs: all 16 approval, evidence, branch and artifact
+  regressions passed, including the PowerShell/JavaScript shared cases.
+- test-ps.cjs: all 13 installer, upgrade, readiness, evidence, launcher and
+  configuration-parity checks passed. The final label/object parser change was
+  separately validated by the focused PowerShell/JavaScript parity test,
+  including preserved legacy DAB + UI metadata and invalid-target handling.
+- Native integrated-browser checks: PBI 305974's four-question modal opened;
+  one sufficiently supported recommendation preselected; draft saved no approval;
+  custom/deferred draft reopened; Cancel closed without saving; explicit grouped
+  answers persisted and answered questions disappeared. All browser writes used
+  an isolated in-memory directory fixture, never the live PBI.
+- Mobile 390x844: dialog fits viewport, scrolls and has no horizontal overflow.
+  Desktop 1280x900 interactions and screenshots were checked.
+- Native Decide Later exposed a real-select option mismatch; fixed and retested.
+- Native folder-picker permission and current external-source freshness cannot
+  be automated by the standalone form. Open local HTML in desktop Edge/Chrome,
+  select the existing repository root, and use Continue PBI / Load questions.
+- PBI 305974 original intake and all four acceptance criteria remain unchanged.
+  Only DEC-1 exists in the live PBI; no missing DEC-2/DEC-3 were reconstructed.
+  All four source roots are readable; 17 source records have content fingerprints.
+  Missing service/CRM activation/audit/SDK evidence prevents analysis completion.
+
+Historical 5.1.0 validation follows unchanged.
+Validation date: 31 October 2026 (Windows 11, Node 20.20.2, Python 3.13.7,
+Windows PowerShell 5.1.22621.6133, CurrentUser execution policy RemoteSigned)
+
+BASELINE BEFORE CHANGES
+- 3.1.0 passed its 26 core checks, UI smoke suite and 7 PowerShell checks.
+- The 3.1.0 generator and template were frozen as fixtures before any change.
+- Audit: docs/V4-CURRENT-STATE-AUDIT.md.
+
+HOST CAPABILITY CHECKED
+- The VS Code tools reference lists vscode/askQuestions ("Ask clarifying questions
+  with interactive controls"). The custom agent reference says unavailable tools
+  are ignored. So the VS Code agent lists the tool, and other hosts use the
+  numbered fallback.
+- No equivalent was found for Visual Studio.
+- Sources:
+  https://code.visualstudio.com/docs/agents/reference/tools-reference
+  https://code.visualstudio.com/docs/agents/reference/custom-agent-file-reference
+
+REFERENCE REPOSITORIES REVIEWED (XRM workflow upgrade; nothing installed or copied)
+- rwilson504/agent-skills, dataverse-classic-workflow (MIT; skills MIT-0): XAML
+  activity names, trigger/mode/scope, real-time-only versus background-only
+  steps, recursion and wait-condition checks. Its edit, copy and publish skills
+  write to environments and were not used.
+- caschern/Dataverse-Process-Mapper: XrmToolBox plugin reading the workflow
+  table (category 0 XAML, category 5 cloud-flow JSON); structural walk that skips
+  unknown steps. No license file found, so no code or text was reused; it needs
+  a live connection, which this builder does not make.
+- DanielKerridge/claude-code-power-platform-skills, dataverse-plugins (MIT per
+  its SKILL.md): plugin development and deployment; only the pipeline facts
+  (stages, images, SharedVariables, InvalidPluginExecutionException) match
+  guidance already present.
+
+PASSED
+- Syntax: core.js and ui.js. PowerShell parser for both .ps1 files: 0 errors.
+  Installer files are pure ASCII.
+- test-core.cjs: 55 checks on real temporary files.
+  - 5.1 sensitive data: 13 credential forms redacted (value removed, kind named,
+    redaction stable); 13 look-alikes kept (placeholders, code references, prose,
+    Integrated Security, text already redacted);
+  - 5.1 every persistence path: intake fields, text attachments (redacted), binary
+    attachments (kept byte for byte, listed as not scanned), refinement notes,
+    custom answers; findings never contain the value;
+  - 5.1 Approve & Generate refuses a credential in pbi-state.json with nothing
+    written, then generates; every generated MD, JSON and DOCX scanned clean;
+  - 5.1 untrusted content: 8 instruction forms flagged, 7 business sentences not
+    flagged; source and line recorded; attachment kept whole; REQUEST.md, pbi.json
+    and the prompt; the review does not flag REQUEST.md's own quotations; agent text;
+  - a 4.1 pbi.json (application, no repositories) keeps the 4.x path rules;
+  - 5.0 development targets: repository roles for CDMS + UI, DAB + UI (CDMS always a
+    read-only reference), UI Only (no backend work) and Both (one shared UI); legacy
+    selection; analysis mode; manual identifiers; ui source in sources.yaml;
+  - Approve & Generate for every target on real files: only the user approval
+    missing before, exactly the target's PBIs as MD, DOCX and JSON, approval bound
+    to the reviewed fingerprint, Development-Ready with no issues, history copies;
+  - PBI 305965 regressions: conflicting criteria block approval with nothing
+    written; UI excluded by the requirement; a reference recorded as a target;
+    Development-Ready claimed too early; a failed write restores every file;
+    a changed rule makes the approval stale and a new approval replaces it;
+  - DOCX parsed by Windows PowerShell (Expand-Archive and XML);
+  - implementation references: other repositories validated and written to
+    sources.yaml, the target never offered, every subset for every target
+    recorded in pbi.json, REQUEST.md and the prompt, read-only comparison rules;
+  - separate CDMS and DAB PBIs: PBI-CDMS.md / PBI-DAB.md rules, one deliverable
+    per single application, two for Both, 4.0 file names give the same result;
+  - legacy source analysis: stack detection, entry-point-to-database trace, reuse
+    first, Not Verified, analysis documents never proof, selectable Approved /
+    Change Requested / Custom Response approvals;
+  - HTML uninstall: same rows as PowerShell, backups first, rollback on failure;
+  - repository first: the agent never requires, creates or trusts an end-to-end
+    analysis document; no installed instruction asks for SOURCE-DISCOVERY.md or
+    for opening reference documents first; the lightweight PBI files stay
+    required; no readiness message requires an analysis document; new
+    installations leave the historical reports out, an existing choice keeps them;
+  - compact intake, autonomous investigation and the Business Decision Advisor: the
+    PBI 277355 regression expectations checked against the installed instructions
+    (intake, no permission questions, sibling solutions and web resources, no
+    premature missing claim, end-to-end trace, field values, scope, separate rules,
+    preserved decisions, numbered recommendation with ready-to-use answer, evidence
+    matrix, real tools only); skill frontmatter valid; no PBI-specific facts in the
+    reusable agent; scope recorded in REQUEST.md and the start prompt;
+  - Discover sources lists folders, including JavaScript outside every project.
+  This checks instructions, not model behavior: see docs/REGRESSION-277355.md for the
+  live check in Visual Studio. These are the 26 earlier
+  checks (tool-list assertion updated) plus:
+  - 4.0 agent wording, the Extract Plugin Rules and speed instructions, and the
+    new guides;
+  - XRM workflow guide wording (discovery, activation unverified, branches,
+    custom activities, real-time versus background termination, recursion, no
+    invented ordering, coverage classes, scopes, coverage matrix columns);
+  - ownership guide wording (no DAB plugin, application choice, JavaScript,
+    HTML and ribbon sources, the ColorDMS source areas, one canonical rule, CDMS
+    and DAB owners and layers, documents); the superseded "plugin already runs
+    for DAB" wording is absent from every installed file;
+  - PBI 305915 (Adaptation; approved rule: block duplicates for the same
+    Industrial instance, Product and Local/Global, allow different instances) in
+    CDMS, DAB and Both: plugin-, workflow- and JavaScript-derived rules; each
+    approved baseline with its CDMS-/DAB-REFINED-PBI.md is Development-Ready;
+    one approved decision, not two; the answered question is not offered again
+    and a re-spaced copy is flagged; the same rule recorded twice is flagged;
+    missing plugin registration, a workflow rule credited to a plugin and an
+    uncited second source are not Development-Ready; a DAB plugin assignment and
+    missing DAB behavior without a layer are rejected; JavaScript evidence never
+    proves the DAB path; a DAB PBI for a CDMS-only PBI is reported; an earlier
+    evidence exclusion is still honored; setup writes no application files;
+  - branch completeness guide and fast-refinement instructions (configured
+    paths, targeted search, incremental updates, short summary, run metrics,
+    evidence index fields);
+  - Paint System measurement (Developed): Yes covered by the plugin; reuse is
+    rejected while the No and Yes-failure branches are open; without plugin
+    activation the Yes branch is unproven and the handoff reports it as
+    unverified; DAB cannot claim implemented with open DAB branches; the
+    extend plan is Development-Ready; business-rules.json lists the four
+    branches, six open gaps with the No-path risk, approved versus proposed
+    requirements and technical findings, no DAB plugin; the matrix shows them;
+    answering a question changes only the state and decision log (request,
+    draft and handoff byte-identical, rules unchanged, question not
+    re-offered); a re-export keeps the earlier handoff in history/; evidence
+    index fields survive a refresh and a changed source is marked stale;
+  - application areas: CDMS, DAB (GraphQL) and Custom (Legacy CRM/XRM) in the agent,
+    guided-creation guide, sources.yaml and SOURCE-MAP.md; stored role keys unchanged;
+    field values are not applications; recommended option, Custom answer and Decide
+    later; scope questions only after investigating where the field is used. PBI 277355:
+    the ColorApps/OwnColor question appears in no installed instruction file, and
+    OwnColor appears only in the rule that treats it as a Development Tool value (the
+    bundled historical reports name legacy code such as AN.OwnColorExtractor and are
+    left verbatim);
+  - fresh start for every new PBI: agent rules (new chat, nothing carried over from
+    earlier PBIs, chats or Copilot memory, other PBI folders by name only, nothing
+    stored in memory or knowledge notes), knowledge guide and the new-PBI start
+    prompt;
+  - Visual Studio tool compatibility: every Visual Studio tool name is one
+    Microsoft documents for custom agents, no terminal tool, VS Code names kept
+    apart, pinned comparison agents unchanged;
+  - installed into a legacy repository (role legacy, source "."): sources.yaml
+    access note, access check, evidence priority, tracing chain, no secrets,
+    Source access section of EVIDENCE.md and sourceAccess instructions; only agent and playbook
+    files are written;
+  - source discovery on a real temporary legacy repository: classic .sln and
+    .slnx parsing, old-style and SDK projects, .NET Framework and net48,
+    project references, CRM SDK/workflow/Web Forms/data-access markers, files per
+    project, bin/obj/node_modules/playbook/.github skipped, sources classified
+    readable / configured-inaccessible (outside the folder, or nothing readable)
+    / not-configured, no source code or connection string copied, only the two
+    map files added; the handoff carries sourceAccess and dependencies;
+  - guided intake (scenarios A, B, C, D, E): title-only draft, criteria modes,
+    attachment names made safe, target project;
+  - question engine (scenarios F, G, L, M): blocking question first, answered
+    questions never re-offered after a restart, required name, invalid option,
+    skip only optional questions, custom answer, edit supersedes the earlier
+    decision, DECISION-LOG entries, three history backups, broken JSON refused
+    without writing;
+  - upgrade from a real 3.1.0 install: the five new guides are created, PBI files are
+    byte-identical, and a 3.1-approved PBI is still Development-Ready.
+- 95 shared readiness scenarios with exact expected codes. The 2 newest: evidence
+  from another PBI's folder is FOREIGN_PBI_EVIDENCE and does not count; an
+  attachment in the PBI's own folder is valid evidence. The 43 before them cover:
+  answered/deferred/unknown/not-applicable question statuses, duplicate and
+  superseded questions, legacy CRM evidence on DAB versus CDMS paths, the
+  PBI 305915-style scope exclusion, an exclusion without a decision, workflow,
+  custom activity, multiple and unknown owners, misattributed owners, an
+  invalid evidence system or component, DAB plugin assignment, DAB ownership
+  status and layer, CDMS reuse with DAB implementing, duplicate rule text,
+  JavaScript evidence, CDMS-/DAB-REFINED-PBI.md approval gate, content and
+  out-of-scope application, branch tracking with an open No path, reuse with
+  an open branch, DAB implemented with an open branch, covered branches
+  without code evidence, without plugin activation or with legacy evidence for
+  DAB, incomplete branches and conflicting branches without a risk, a rule
+  supported only by a bundled historical report, a historical report beside
+  current source, and evidence flagged historical.
+- test-ui.cjs: real form handlers with a simulated DOM.
+  - The four-step 5.0 wizard: required fields with inline errors, legacy
+    repository with Validate and Add or remove, development target radios with
+    repository roles, analysis mode, draft and resume, Review summary.
+  - Existing PBI number: Resume, Review, Start New Version, Cancel.
+  - 5.1: a secret in the description and a text attachment is redacted in
+    REQUEST.md, pbi.json, the attachment, the prompt and the message; instruction-
+    like text is flagged and kept; a binary attachment is kept and listed.
+  - Review & approve: seven cards (a credential in pbi-state.json blocks approval,
+    shown by kind only), name required, Approve & Generate, DOCX/MD/JSON
+    and ZIP downloads read back and verified, preview, a tampered file refused,
+    Request Changes, Save Draft, a blocker disables approval.
+  - Attachments copied into attachments/; Save draft and Cancel.
+  - Resume draft into the same folder; Review summary; Start analysis.
+  - A started intake cannot be reopened as a draft.
+  - Existing PBI number: Resume offered, nothing saved (scenario H).
+  - Question panel: options plus custom, name required, submit, skip optional,
+    edit previous with a custom answer (DEC-2 replaces DEC-1), show decisions,
+    recommended option marked and preselected, Decide later (a required question
+    left for later stays open).
+  - Export developer handoff writes business-rules.json and the matrix.
+  - Discover sources writes the source map and reports each source's access.
+  - Application choice (Both) shown in Review and saved in REQUEST.md and
+    pbi.json; the start prompt says not to ask again.
+- test-ps.cjs: 12 checks with real Windows PowerShell (5.0: -UiSource and -Role ui
+  identical to the form, a 4.x config.json upgrades identically; readiness parity on
+  every fixture case, including the development-target cases; other repositories via
+  -OtherSource identical to the form, kept by Repair, cleared by ';'; launchers: Install.cmd,
+  Uninstall.cmd, package checksum, missing file, downloaded-file mark with Y/N,
+  AllSigned and Restricted not bypassed, interrupted install, repeated install and
+  uninstall, log and exit codes; HTML and PowerShell uninstall identical), folders with spaces and
+  Kannada characters.
+  - Installer output byte-identical to core for both IDEs, including the new
+    guides and the VS Code tool list.
+  - Upgrades from 2.1 and 3.0.0 match the form; repair, rollback, uninstall and
+    execution-policy behavior as before.
+  - Setup window engine (-NoGui): install into a repository remembers it and records
+    the chosen area; a rerun is already up to date; Status lists up to date and
+    update available; Upgrade all upgrades a 3.0.0 installation (settings kept,
+    backups made) and skips one whose agent was edited (nothing written there,
+    reported); a new installation leaves the historical reports out; Verify;
+    Uninstall forgets the repository; no ExecutionPolicy
+    override in the launcher or the window script.
+  - The window itself was opened on this machine and its controls listed through
+    UI Automation (title, repository list, Add repository, Install / Upgrade,
+    Upgrade all, Repair, Verify, Uninstall, Close). Clicking through the dialogs
+    was not automated.
+  - CheckPbi JSON identical to core for all 95 scenarios and the four 3.0.0 gap
+    states.
+- Mutation checks on a copy of the installer: removing the legacy-evidence rule,
+  counting deferred questions as resolved, removing the duplicate check, or
+  removing the owner attribution check, the DAB plugin check, the branch
+  coverage check, the historical-evidence check or the other-PBI evidence check each
+  made the parity test fail.
+- docs/V4-DEMO.md: generated by maintainer/demo-v4.cjs, which runs Create PBI
+  (draft, resume, start analysis with attachments) through answer, skip,
+  edit-with-custom-answer and Validate on a real temporary repository. Copilot
+  steps are marked SIMULATED.
+- release.cjs: ZIP extracted by PowerShell Expand-Archive; every SHA-256 matches.
+
+NOT VERIFIED HERE (need a team machine)
+- 5.1 secret detection is pattern-based: it can miss a credential in an unusual
+  form (a bare password with no setting name, an unknown token format) and is
+  not an approved secret scanner. Word, PDF and image attachments are not
+  scanned (listed as not scanned).
+- 5.1 instruction detection is pattern-based: reworded instructions can pass
+  unflagged. Whether the model ignores them is an instruction to the model; no
+  model was run. Repository source is not scanned by the form.
+- Scenario J: whether VS Code actually renders vscode/askQuestions for this
+  custom agent in your Copilot version and policy. The fallback is numbered text.
+- Scenario K and chat-side A-N: the agent's chat behavior. Examples: prefilling a
+  complete PBI (N), not re-asking (L), BA-style questions, no technical questions
+  to business users. These are instructions to the model; no model was run.
+- Scenarios C, D, E content: whether Copilot can open a given PDF, Word, Excel
+  file or image. The form copies the files and the agent is told to report what it
+  cannot open; no parsing was tested.
+- Scenario I (no legacy source available): instruction-level only.
+- Native browser file and folder dialogs and rendering; Visual Studio and VS Code
+  agent discovery.
+- Performance: maintainer/benchmark.cjs (docs/PERFORMANCE.md) measures only the
+  deterministic operations; they are on par with 3.1.0 (differences are within
+  run-to-run noise). Agent analysis time, files read, searches and cache hit
+  rate need real Copilot runs (Compare old & new now has columns for them).
+- PowerShell has no handoff export or source discovery; use the form's buttons.
+- Visual Studio integration: no Visual Studio here. Pending on a team machine
+  (docs/USER-GUIDE.md, "Visual Studio check"): agent listed, the four tools
+  available, a real file read in the access check, and whether an agent stored
+  in a child repository is listed when a parent folder is opened. The tool names
+  and the file-access rule come from Microsoft's documentation, not a test.
+- Workflow analysis and Extract Plugin Rules on a real CRM solution: instructions
+  only; no model run read actual XAML or plugin code. Real-time/background
+  behavior statements come from platform documentation, not a test here.
+- Azure DevOps prefill: not implemented (no approved connection).
+- The installer's guided double-click mode; AllSigned/Restricted machines (unsigned
+  installer is blocked by design).
+- Sections 6 onward of the original 4.0.0 specification were cut off in the
+  message received; requirements in that missing part are not covered.
+
+TEAM-MACHINE SMOKE TEST
+1. Install into a throwaway copy (form or Install-PBIBuilder.cmd); -Action Verify.
+2. VS Code: select the agent, type "Create PBI"; confirm selectable answers appear.
+   Visual Studio: confirm numbered options and 1-4/back/skip/status work.
+3. Attach one PDF, one image and one .docx; note which the agent can read.
+4. Answer a question in the form's Continue tab; confirm the agent does not ask it
+   again.
+5. Upgrade a copy that has 3.1.0 PBIs; run Check PBI readiness on one approved PBI.

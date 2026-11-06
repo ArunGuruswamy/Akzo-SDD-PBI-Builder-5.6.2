@@ -1,0 +1,53 @@
+TEAM PILOT - BASELINE VERSUS CURRENT PBI BUILDER (4.0.0)
+
+PURPOSE
+Check, on identical requests and repository state, whether version 4.0 finds the
+right enforcement owner and target-path responsibility for each business rule,
+asks fewer and better questions, and reports readiness honestly, compared with an
+earlier version. Measure usage when available. No saving is assumed.
+
+BASELINES
+Normal installs have one agent. A trial adds ONE pinned baseline agent:
+- v2.1 Concise: the previous daily agent (default).
+- v2.0 Original: the original version 2.0 workflow.
+The trial's README.md and comparison.json name the baseline used. After the trial,
+click Remove comparison agents. Trial folders and results are kept.
+
+SETUP
+1. Install 4.0 in a throwaway project copy with access to the needed evidence.
+2. In the form, open Compare old & new, choose the baseline, enter one title and a
+   description with its known rules and exceptions. Save.
+3. Reopen the IDE and confirm both agent names appear.
+Each trial creates two identical REQUEST.md files in separate playbook/pbis/trial-...
+folders, a prompt per agent, and a report folder with results.csv,
+QUALITY-REVIEW.md and README.md. Nothing runs automatically.
+
+KEEP THESE CONDITIONS THE SAME
+Model and settings; repository commit and uncommitted changes; registered source
+paths; reference documents; tool access; project instructions; input requirement;
+evaluation stage; prepared business answers. Use fresh chats. Do not let one run
+read the other's output.
+
+SUGGESTED TASKS
+1. A rule enforced by an active plugin that CDMS reaches.
+2. A rule whose plugin code exists but whose registration is missing or disabled.
+3. A DAB/OCP/GraphQL write that bypasses CRM enforcement.
+4. A rule already implemented by a shared validator (no duplicate implementation).
+5. A permission difference between caller and service identity.
+6. An existing PBI whose requested change conflicts with an approved decision.
+7. A missing-source case that must end in an explicit evidence gap.
+
+REVIEW QUALITY FIRST (QUALITY-REVIEW.md)
+Missed rules; incorrect enforcement owner or path; unsupported assumptions;
+repeated questions; readiness errors; invented approvals; application changes;
+output outside the assigned folder. Any of these fails the run regardless of cost.
+For 4.0 runs, also run Check PBI readiness on the result and record its output.
+
+RECORD MEASUREMENTS (results.csv)
+Elapsed minutes, follow-up questions, searches and tool calls from the chat; input,
+output and cached tokens and AI credits only from actual usage records. Leave
+unavailable values empty. Characters and response length are not token counts.
+
+DECIDE
+If quality is worse, do not adopt the change because it is shorter or faster.
+Existing live PBIs and their approvals are unaffected by trials.
